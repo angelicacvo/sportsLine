@@ -1,7 +1,8 @@
 import { Router } from 'express'
-import { login, register } from '../controllers/auth.controller.ts'
+import { loginController, registrationController, refreshController } from '../controllers/auth.controller.ts'
 
 export const router = Router()
 
-router.post('/register', register)
-router.post('/login', login)
+router.post('/register', registrationController)
+router.post('/login', loginController)
+router.post('/refresh', refreshController)

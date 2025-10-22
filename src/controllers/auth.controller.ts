@@ -1,12 +1,14 @@
 import type { Request, Response } from 'express'
 import { registrationService, loginService } from '../services/auth.service.ts'
+import type { RegisterUserDTO, AuthUserDTO } from '../models/users.model.ts'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt.handle.ts'
 import { errorHandler } from '../utils/error.handle.ts'
 
 // registrationController: crea usuario, maneja strings de error desde el servicio
 export const registrationController = async (req: Request, res: Response) => {
   try {
-    const result = await registrationService(req.body)
+    const payload = req.body as RegisterUserDTO
+    const result = await registrationService(payload)
     if (!result) return res.status(400).json({ message: 'Failed to register user' })
     if (typeof result === 'string') return res.status(400).json({ message: result })
     return res.status(201).json({ message: 'User created successfully', user: result })
@@ -18,7 +20,7 @@ export const registrationController = async (req: Request, res: Response) => {
 // loginController: devuelve token + user, o 403 si credenciales inválidas
 export const loginController = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body
+    const { email, password } = req.body as AuthUserDTO
     const result = await loginService({ email, password })
     if (typeof result === 'string') return res.status(403).json({ message: 'Invalid credentials' })
     // Opcional: también emitir refresh token si lo requieres en Task 2

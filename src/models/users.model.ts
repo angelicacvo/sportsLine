@@ -16,6 +16,11 @@ export interface UserAttributes {
 export type UserCreationDTO = Omit<UserAttributes, 'id' | 'createdAt' | 'updatedAt' | 'role'>;
 export type UserUpdateDTO = Pick<UserAttributes, 'name' | 'email' | 'password' | 'role'>;
 
+// DTOs colocados en el modelo, como en tu proyecto anterior
+export type AuthUserDTO = Pick<UserAttributes, 'email' | 'password'>;
+
+export type RegisterUserDTO = Pick<UserAttributes, 'name' | 'email' | 'password'>;
+
 export class User extends Model<UserAttributes, UserCreationDTO> implements UserAttributes {
   declare id: number;
   declare name: string;

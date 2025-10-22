@@ -2,11 +2,14 @@ import { sequelize } from './src/config/database.config.ts'
 import cors from 'cors'
 import express from 'express'
 import 'dotenv/config'
+import { router } from './src/routes/router.ts'
 
 const app = express()
 const PORT = process.env.PORT || 3000
 
 app.use(cors())
+app.use(express.json())
+app.use('/api', router)
 
 const databaseInit = async () => {
     try {

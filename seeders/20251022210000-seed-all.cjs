@@ -6,7 +6,6 @@ module.exports = {
     const bcrypt = require('bcrypt');
     const t = await queryInterface.sequelize.transaction();
     try {
-      // Seed users (realistic + hashed passwords)
       const rawUsers = [
         {
           name: "Catalina Méndez",

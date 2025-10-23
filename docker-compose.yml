@@ -1,0 +1,25 @@
+services:
+  app:
+    build: .
+    container_name: sportsline_app
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: 3000
+      DB_SSL: "true"
+      # DB_* variables from Supabase come from .env (DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD)
+    ports:
+      - "3000:3000"
+    networks:
+      - sportsline_net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 1G
+
+networks:
+  sportsline_net:
+    driver: bridge
+ 

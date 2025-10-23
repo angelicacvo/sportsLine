@@ -1,0 +1,722 @@
+openapi: 3.0.3
+info:
+  title: SportsLine API
+  version: 1.0.0
+  description: API documentation for SportsLine backend (Auth, Products, Clients, Orders)
+servers:
+  - url: http://localhost:3001
+    description: local server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Jane Doe
+        email:
+          type: string
+          example: jane@example.com
+        role:
+          type: string
+          example: admin
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 10
+        code:
+          type: string
+          example: SKU-001
+        name:
+          type: string
+          example: Soccer Ball
+        price:
+          type: number
+          example: 49.99
+        stock:
+          type: integer
+          example: 150
+        userId:
+          type: integer
+          example: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Client:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 7
+        name:
+          type: string
+          example: Acme Corp.
+        email:
+          type: string
+          example: buyer@acme.com
+        phone:
+          type: string
+          example: "+57 300 123 4567"
+        userId:
+          type: integer
+          example: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    RegisterPayload:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+          example: Jane Doe
+        email:
+          type: string
+          example: jane@example.com
+        password:
+          type: string
+          example: secret123
+    LoginPayload:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          example: jane@example.com
+        password:
+          type: string
+          example: secret123
+    UserCreatePayload:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+          example: Juan Pérez
+        email:
+          type: string
+          example: juan.perez@example.com
+        password:
+          type: string
+          example: Seller#2025
+        role:
+          type: string
+          enum: [admin, seller]
+          example: seller
+    UserUpdatePayload:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Juan P.
+        email:
+          type: string
+          example: juan.p@example.com
+        password:
+          type: string
+          example: NewPass#2025
+        role:
+          type: string
+          enum: [admin, seller]
+    ProductCreatePayload:
+      type: object
+      required: [code, name, price, stock]
+      properties:
+        code:
+          type: string
+          example: SKU-001
+        name:
+          type: string
+          example: Soccer Ball
+        price:
+          type: number
+          example: 49.99
+        stock:
+          type: integer
+          example: 100
+    ProductUpdatePayload:
+      type: object
+      properties:
+        code:
+          type: string
+          example: SKU-001
+        name:
+          type: string
+          example: Ball size 5
+        price:
+          type: number
+          example: 39.99
+        stock:
+          type: integer
+          example: 200
+    ClientCreatePayload:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          example: Acme Corp.
+        email:
+          type: string
+          example: buyer@acme.com
+        phone:
+          type: string
+          example: "+57 300 123 4567"
+    ClientUpdatePayload:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Acme Ltd.
+        email:
+          type: string
+          example: purchases@acme.com
+        phone:
+          type: string
+          example: "+57 315 000 0000"
+    OrderCreateItem:
+      type: object
+      required: [productId, quantity]
+      properties:
+        productId:
+          type: integer
+          example: 1
+        quantity:
+          type: integer
+          example: 2
+    OrderCreatePayload:
+      type: object
+      required: [clientId, items]
+      properties:
+        clientId:
+          type: integer
+          example: 1
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderCreateItem'
+    OrderProductThrough:
+      type: object
+      properties:
+        quantity:
+          type: integer
+          example: 2
+        unitPrice:
+          type: number
+          example: 129900.0
+    ProductWithPivot:
+      allOf:
+        - $ref: '#/components/schemas/Product'
+        - type: object
+          properties:
+            OrderProduct:
+              $ref: '#/components/schemas/OrderProductThrough'
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 101
+        clientId:
+          type: integer
+          example: 1
+        createdByUserId:
+          type: integer
+          example: 2
+        total:
+          type: number
+          example: 449700.0
+        status:
+          type: string
+          enum: [pending, confirmed, cancelled]
+          example: confirmed
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        client:
+          $ref: '#/components/schemas/Client'
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductWithPivot'
+security:
+  - bearerAuth: []
+paths:
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterPayload'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              examples:
+                success:
+                  value:
+                    message: User created successfully
+                    user:
+                      id: 1
+                      name: Jane Doe
+                      email: jane@example.com
+                      role: admin
+        '400':
+          description: Validation or business error
+        '500':
+          description: Server error
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginPayload'
+      responses:
+        '200':
+          description: Login ok
+          content:
+            application/json:
+              examples:
+                success:
+                  value:
+                    message: Login successful
+                    token: JWT_TOKEN
+                    refreshToken: REFRESH_TOKEN
+                    user:
+                      id: 1
+                      email: jane@example.com
+                      role: admin
+        '403':
+          description: Invalid credentials
+  /api/auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+              required: [refreshToken]
+      responses:
+        '200':
+          description: New tokens issued
+        '400':
+          description: Missing or invalid refreshToken
+  /api/product:
+    get:
+      tags: [Products]
+      summary: List products
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Array of products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+    post:
+      tags: [Products]
+      summary: Create product (admin)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreatePayload'
+      responses:
+        '201':
+          description: Product created
+        '400':
+          description: Validation or business rule error
+  /api/product/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Products]
+      summary: Get product by id
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Product detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product:
+                    $ref: '#/components/schemas/Product'
+        '404':
+          description: Not found
+    put:
+      tags: [Products]
+      summary: Update product (admin)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdatePayload'
+      responses:
+        '200':
+          description: Product updated
+        '400':
+          description: Validation or business rule error
+        '404':
+          description: Not found
+    delete:
+      tags: [Products]
+      summary: Delete product (admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Deleted
+        '404':
+          description: Not found
+  /api/client:
+    get:
+      tags: [Clients]
+      summary: List clients
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Array of clients
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  clients:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Client'
+    post:
+      tags: [Clients]
+      summary: Create client (admin)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientCreatePayload'
+      responses:
+        '201':
+          description: Client created
+        '400':
+          description: Validation or business rule error
+  /api/client/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Clients]
+      summary: Get client by id
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Client detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  client:
+                    $ref: '#/components/schemas/Client'
+        '404':
+          description: Not found
+    put:
+      tags: [Clients]
+      summary: Update client (admin)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientUpdatePayload'
+      responses:
+        '200':
+          description: Client updated
+        '400':
+          description: Validation or business rule error
+        '404':
+          description: Not found
+    delete:
+      tags: [Clients]
+      summary: Delete client (admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Deleted
+        '404':
+          description: Not found
+  /api/order:
+    get:
+      tags: [Orders]
+      summary: List all orders (admin/seller)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Array of orders with client and products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+              examples:
+                sample:
+                  value:
+                    orders:
+                      - id: 1
+                        clientId: 1
+                        createdByUserId: 2
+                        total: 449700.0
+                        status: confirmed
+                        client:
+                          id: 1
+                          name: Laura Gómez
+                          email: laura.gomez@example.com
+                          phone: "+57 311 456 7890"
+                        products:
+                          - id: 1
+                            code: SL-BAL-001
+                            name: Balón Fútbol Adidas Tiro League
+                            price: 129900.0
+                            stock: 58
+                            OrderProduct:
+                              quantity: 2
+                              unitPrice: 129900.0
+                          - id: 3
+                            code: SL-GUA-003
+                            name: Guantes Boxeo Everlast Powerlock
+                            price: 189900.0
+                            stock: 74
+                            OrderProduct:
+                              quantity: 1
+                              unitPrice: 189900.0
+    post:
+      tags: [Orders]
+      summary: Create order (admin/seller)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreatePayload'
+            examples:
+              createSample:
+                value:
+                  clientId: 1
+                  items:
+                    - productId: 1
+                      quantity: 2
+                    - productId: 3
+                      quantity: 1
+      responses:
+        '201':
+          description: Order created
+          content:
+            application/json:
+              examples:
+                success:
+                  value:
+                    message: Order created
+                    orderId: 1
+                    total: 449700.0
+                    status: confirmed
+        '400':
+          description: Validation or business error (e.g., insufficient stock)
+  /api/order/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Orders]
+      summary: Get order by id (admin/seller)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Order detail with client and products
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  order:
+                    $ref: '#/components/schemas/Order'
+        '404':
+          description: Not found
+    put:
+      tags: [Orders]
+      summary: Update order status (admin)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [pending, confirmed, cancelled]
+              required: [status]
+      responses:
+        '200':
+          description: Order updated
+        '400':
+          description: Validation or business rule error
+        '404':
+          description: Not found
+    delete:
+      tags: [Orders]
+      summary: Delete order (admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Deleted
+        '404':
+          description: Not found
+  # name-based filter endpoints removed; use /api/order to list all
+  /api/user:
+    get:
+      tags: [Users]
+      summary: List users (admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Array of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+    post:
+      tags: [Users]
+      summary: Create user (admin)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreatePayload'
+      responses:
+        '201':
+          description: User created
+        '400':
+          description: Validation or business rule error
+  /api/user/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Users]
+      summary: Get user by id (admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: User detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        '404':
+          description: Not found
+    put:
+      tags: [Users]
+      summary: Update user (admin)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdatePayload'
+      responses:
+        '200':
+          description: User updated
+        '400':
+          description: Validation or business rule error
+        '404':
+          description: Not found
+    delete:
+      tags: [Users]
+      summary: Delete user (admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Deleted
+        '404':
+          description: Not found

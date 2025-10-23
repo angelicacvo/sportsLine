@@ -1,0 +1,26 @@
+services:
+  app:
+    build: .
+    container_name: sportsline_app
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: 3000
+      DB_SSL: "true"
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - sportsline_net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 1G
+
+networks:
+  sportsline_net:
+    driver: bridge

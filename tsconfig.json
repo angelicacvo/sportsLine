@@ -3,17 +3,18 @@
   "compilerOptions": {
     // File Layout
     // "rootDir": "./src",
-    // "outDir": "./dist",
+    "outDir": "./dist",
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
     "module": "nodenext",
     "target": "esnext",
-    "types": [],
     // For nodejs:
     // "lib": ["esnext"],
-    // "types": ["node"],
+    "types": ["node", "jest"],
     // and npm install -D @types/node
+        "moduleResolution": "nodenext",
+    "allowSyntheticDefaultImports": true,
 
     // Other Outputs
     "sourceMap": true,
@@ -31,6 +32,12 @@
     // "noUnusedParameters": true,
     // "noFallthroughCasesInSwitch": true,
     // "noPropertyAccessFromIndexSignature": true,
+
+        // Stricter Typechecking Options
+
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "typeRoots": ["./node_modules/@types"],
 
     // Recommended Options
     "strict": true,

@@ -1,0 +1,43 @@
+import { sequelize } from './src/config/database.config.ts'
+// Ensure models are initialized and associations are set up before syncing/using them
+import './src/models/index.ts'
+import cors from 'cors'
+import express from 'express'
+import 'dotenv/config'
+import { router } from './src/routes/router.ts'
+import { setupSwagger } from './src/config/swagger.config.ts'
+
+const app = express()
+const PORT = process.env.PORT || 3000
+
+app.use(cors())
+app.use(express.json())
+app.use('/api', router)
+setupSwagger(app)
+
+const databaseInit = async () => {
+    try {
+        await sequelize.authenticate();
+        console.log('[DB] Database connection successful')
+
+        await sequelize.sync( { alter: true });
+        console.log('[DB] Models synchronized')
+    } catch (error) {
+        console.log('[DB] Error connecting to database', error)
+        throw error;
+    }
+}
+
+const startProgram = async () => {
+    try {
+        await databaseInit();
+        app.listen(PORT, () => {
+            console.log(`Server running on port: ${PORT}`)
+        });
+    } catch (error) {
+        console.error(`[Server] Start aborted due to database error`, error);
+        process.exit(1);
+    }
+}
+
+startProgram();

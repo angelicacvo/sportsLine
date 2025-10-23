@@ -11,7 +11,7 @@ export async function getClientByIdService(id: number) {
 }
 
 export async function createClientService(data: ClientCreationDTO) {
-  const { name, email, phone } = data as any
+  const { name, email, phone } = data
   if (!name) return 'name is required'
 
   if (email) {
@@ -19,7 +19,7 @@ export async function createClientService(data: ClientCreationDTO) {
     if (exists) return 'Client email already exists'
   }
 
-  const created = await Client.create({ name, email: email ?? null, phone: phone ?? null } as any)
+  const created = await Client.create({ name, email: email ?? null, phone: phone ?? null })
   return created
 }
 

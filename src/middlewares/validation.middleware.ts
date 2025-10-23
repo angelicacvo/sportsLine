@@ -10,8 +10,7 @@ export const validateBody = (schema: ZodSchema) => {
         const details = parsed.error.flatten()
         return res.status(400).json({ message: 'Validation error', errors: details })
       }
-      // Overwrite body with parsed data (strips unknowns when schema configured)
-      req.body = parsed.data as any
+      // Solo validamos; no reasignamos req.body para mantenerlo simple y consistente con tus controladores
       return next()
     } catch (e) {
       return errorHandler(res, 'Validation middleware error', e)
@@ -27,7 +26,7 @@ export const validateParams = (schema: ZodSchema) => {
         const details = parsed.error.flatten()
         return res.status(400).json({ message: 'Validation error', errors: details })
       }
-      req.params = parsed.data as any
+      // Solo validamos; no mutamos req.params
       return next()
     } catch (e) {
       return errorHandler(res, 'Validation middleware error', e)
@@ -43,7 +42,7 @@ export const validateQuery = (schema: ZodSchema) => {
         const details = parsed.error.flatten()
         return res.status(400).json({ message: 'Validation error', errors: details })
       }
-      req.query = parsed.data as any
+      // Solo validamos; no mutamos req.query
       return next()
     } catch (e) {
       return errorHandler(res, 'Validation middleware error', e)

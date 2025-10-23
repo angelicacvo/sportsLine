@@ -24,7 +24,7 @@ export const loginController = async (req: Request, res: Response) => {
     const result = await loginService({ email, password })
     if (typeof result === 'string') return res.status(403).json({ message: 'Invalid credentials' })
     // Opcional: también emitir refresh token si lo requieres en Task 2
-    const refreshToken = signRefreshToken({ id: result.user.id, email: result.user.email, role: result.user.role as any })
+  const refreshToken = signRefreshToken({ id: result.user.id, email: result.user.email, role: result.user.role })
     return res.status(200).json({ message: 'Login successful', token: result.token, refreshToken, user: result.user })
   } catch (e) {
     errorHandler(res, 'Error logging in', e)

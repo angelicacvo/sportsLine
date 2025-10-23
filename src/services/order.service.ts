@@ -88,21 +88,28 @@ export const createOrderService = async (payload: CreateOrderInput) => {
   })
 }
 
-export const getOrdersService = async (filter?: { clientId?: number; productId?: number }) => {
+export const getOrdersService = async (filter?: { clientId?: number; productId?: number; clientName?: string; productName?: string }) => {
   const where: WhereOptions = {}
   if (filter?.clientId) Object.assign(where, { clientId: filter.clientId })
 
-  const include = [
-    { model: Client, as: 'client' },
-    {
-      model: Product,
-      as: 'products',
-      through: { attributes: ['quantity', 'unitPrice'] },
-      ...(filter?.productId ? { where: { id: filter.productId } } : {}),
-    },
-  ]
+  const clientInclude: any = { model: Client, as: 'client' }
+  if (filter?.clientName) {
+    clientInclude.where = { name: { [Op.iLike]: `%${filter.clientName}%` } }
+  }
 
-  const orders = await Order.findAll({ where, include, order: [['id', 'DESC']] })
+  const productInclude: any = {
+    model: Product,
+    as: 'products',
+    through: { attributes: ['quantity', 'unitPrice'] },
+  }
+  if (filter?.productId) {
+    productInclude.where = { ...(productInclude.where || {}), id: filter.productId }
+  }
+  if (filter?.productName) {
+    productInclude.where = { ...(productInclude.where || {}), name: { [Op.iLike]: `%${filter.productName}%` } }
+  }
+
+  const orders = await Order.findAll({ where, include: [clientInclude, productInclude], order: [['id', 'DESC']] })
   return orders
 }
 

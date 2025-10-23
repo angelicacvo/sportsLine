@@ -1,4 +1,6 @@
 import { sequelize } from './src/config/database.config.ts'
+// Ensure models are initialized and associations are set up before syncing/using them
+import './src/models/index.ts'
 import cors from 'cors'
 import express from 'express'
 import 'dotenv/config'

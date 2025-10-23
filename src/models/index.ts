@@ -1,4 +1,4 @@
-import { sequelize } from '../config/database.config.js';
+import { sequelize } from '../config/database.config.ts';
 import { initUsersModel, User } from "./users.model.ts";
 import { initClientsModel, Client } from "./clients.model.ts";
 import { initProductsModel, Product } from "./products.model.ts";

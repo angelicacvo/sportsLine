@@ -1,5 +1,5 @@
 import { Transaction, Op } from 'sequelize'
-import type { WhereOptions } from 'sequelize'
+// removed whereoptions: listing does not use filters
 import { sequelize } from '../config/database.config.ts'
 import { Order, type OrderCreationDTO } from '../models/orders.model.ts'
 import { OrderProduct, type OrderProductCreationDTO } from '../models/orderProducts.model.ts'
@@ -20,7 +20,6 @@ export interface CreateOrderInput {
 
 // compute a draft order without stock validation or inventory changes
 export const createOrderDraftService = async (payload: CreateOrderInput) => {
-  // Borrador: calcula total y crea líneas SIN validar stock ni descontar inventario (Task 1)
   return await sequelize.transaction(async (transaction: Transaction) => {
     const productIds = payload.items.map((item) => item.productId)
     const productsFound = await Product.findAll({ where: { id: { [Op.in]: productIds } }, transaction })
@@ -28,7 +27,7 @@ export const createOrderDraftService = async (payload: CreateOrderInput) => {
 
     const orderItems: OrderProductCreationDTO[] = payload.items.map((item) => ({
 // create a confirmed order, validate stock, and decrement inventory atomically
-      orderId: 0, // se setea después de crear la orden
+      orderId: 0, 
       productId: item.productId,
       quantity: item.quantity,
       unitPrice: priceById.get(item.productId) ?? 0,
@@ -91,40 +90,14 @@ export const createOrderService = async (payload: CreateOrderInput) => {
   })
 }
 
-// list orders with optional filters (by client/product name) and include relations
-export const getOrdersService = async (filter?: { clientId?: number; productId?: number; clientName?: string; productName?: string }) => {
-  const where: WhereOptions = {}
-  if (filter?.clientId) Object.assign(where, { clientId: filter.clientId })
-
-  const clientInclude: any = { model: Client, as: 'client' }
-  if (filter?.clientName) {
-    clientInclude.where = { name: { [Op.iLike]: `%${filter.clientName}%` } }
-  }
-
-  const productInclude: any = {
-    model: Product,
-    as: 'products',
-    through: { attributes: ['quantity', 'unitPrice'] },
-  }
-  if (filter?.productId) {
-    productInclude.where = { ...(productInclude.where || {}), id: filter.productId }
-  }
-  if (filter?.productName) {
-    productInclude.where = { ...(productInclude.where || {}), name: { [Op.iLike]: `%${filter.productName}%` } }
-  }
-
-  const orders = await Order.findAll({ where, include: [clientInclude, productInclude], order: [['id', 'DESC']] })
-  return orders
+// list all orders without filters or relations
+export const getOrdersService = async () => {
+  return Order.findAll()
 }
 
-// get a single order by id with its client and product lines
+// get a single order by id
 export const getOrderByIdService = async (id: number) => {
-  const order = await Order.findByPk(id, {
-    include: [
-      { model: Client, as: 'client' },
-      { model: Product, as: 'products', through: { attributes: ['quantity', 'unitPrice'] } },
-    ],
-  })
+  const order = await Order.findByPk(id)
   return order ?? 'Order not found'
 }
 

@@ -41,7 +41,7 @@ Provide a RESTful API that allows SportsLine to:
 
 4. documentation (swagger)
    - swagger ui available at `/docs`; openapi spec in `src/docs/openapi.yaml`
-   - link: http://localhost:3000/docs
+  - link: http://localhost:3001/docs
 
 5. git & workflow (hu5)
    - recommended branching strategy: `main`, `feature/*`
@@ -99,7 +99,7 @@ npm install
 create a `.env` file in the project root (example):
 
 ```env
-PORT=3000
+PORT=3001
 DB_HOST=127.0.0.1
 DB_PORT=5432
 DB_NAME=sportsline_development
@@ -126,7 +126,7 @@ npm run dev
 6) open swagger ui
 
 ```
-http://localhost:3000/docs
+http://localhost:3001/docs
 ```
 
 ### Docker Compose (Optional)
@@ -184,8 +184,6 @@ npm run db:seed
   - `GET /api/order`
   - `POST /api/order`
   - `GET /api/order/{id}`
-  - `GET /api/order/by-client-name/{name}`
-  - `GET /api/order/by-product-name/{name}`
   - `PUT /api/order/{id}` (update status)
   - `DELETE /api/order/{id}`
 

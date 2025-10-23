@@ -41,35 +41,7 @@ export const getOrderByIdController = async (req: AuthRequest, res: Response) =>
   }
 }
 
-// Removed ID-based search controllers per requirement: only name-based searches are supported now.
-
-// list orders filtered by client name
-export const getOrdersByClientNameController = async (req: AuthRequest, res: Response) => {
-  try {
-    if (!req.user) return res.status(401).json({ message: 'Unauthorized' })
-  const name = req.params.name
-  const filter: { clientName?: string } = {}
-  if (typeof name === 'string' && name.length > 0) filter.clientName = name
-  const orders = await getServices().order.getOrdersService(filter)
-    return res.status(200).json({ orders })
-  } catch (e) {
-    return errorHandler(res, 'Error getting orders by client name', e)
-  }
-}
-
-// list orders filtered by product name
-export const getOrdersByProductNameController = async (req: AuthRequest, res: Response) => {
-  try {
-    if (!req.user) return res.status(401).json({ message: 'Unauthorized' })
-  const name = req.params.name
-  const filter: { productName?: string } = {}
-  if (typeof name === 'string' && name.length > 0) filter.productName = name
-  const orders = await getServices().order.getOrdersService(filter)
-    return res.status(200).json({ orders })
-  } catch (e) {
-    return errorHandler(res, 'Error getting orders by product name', e)
-  }
-}
+// removed name-based search controllers per requirement: only list all orders
 
 // update order status and adjust stock when needed
 export const updateOrderController = async (req: AuthRequest, res: Response) => {

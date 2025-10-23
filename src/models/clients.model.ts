@@ -11,7 +11,8 @@ export interface ClientAttributes {
   updatedAt?: Date;
 }
 
-export type ClientCreationDTO = Omit<ClientAttributes, 'id' | 'email' | 'phone' | 'createdByUserId' | 'createdAt' | 'updatedAt'>;
+// name obligatorio; email y phone opcionales (nullable en el modelo)
+export type ClientCreationDTO = Pick<ClientAttributes, 'name'> & Partial<Pick<ClientAttributes, 'email' | 'phone'>>;
 export type ClientUpdateDTO = Pick<ClientAttributes, 'name' | 'email' | 'phone'>;
 
 export class Client extends Model<ClientAttributes, ClientCreationDTO> implements ClientAttributes {

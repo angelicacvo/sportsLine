@@ -1,12 +1,19 @@
 import { sequelize } from './src/config/database.config.ts'
+// Ensure models are initialized and associations are set up before syncing/using them
+import './src/models/index.ts'
 import cors from 'cors'
 import express from 'express'
 import 'dotenv/config'
+import { router } from './src/routes/router.ts'
+import { setupSwagger } from './src/config/swagger.config.ts'
 
 const app = express()
 const PORT = process.env.PORT || 3000
 
 app.use(cors())
+app.use(express.json())
+app.use('/api', router)
+setupSwagger(app)
 
 const databaseInit = async () => {
     try {

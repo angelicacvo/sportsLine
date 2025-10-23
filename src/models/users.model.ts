@@ -13,8 +13,14 @@ export interface UserAttributes {
   updatedAt?: Date;
 }
 
-export type UserCreationDTO = Omit<UserAttributes, 'id' | 'createdAt' | 'updatedAt' | 'role'>;
+// Allow creating users with optional role (defaults to 'seller')
+export type UserCreationDTO = Optional<Omit<UserAttributes, 'id' | 'createdAt' | 'updatedAt'>, 'role'>;
 export type UserUpdateDTO = Pick<UserAttributes, 'name' | 'email' | 'password' | 'role'>;
+
+// DTOs colocados en el modelo, como en tu proyecto anterior
+export type AuthUserDTO = Pick<UserAttributes, 'email' | 'password'>;
+
+export type RegisterUserDTO = Pick<UserAttributes, 'name' | 'email' | 'password'>;
 
 export class User extends Model<UserAttributes, UserCreationDTO> implements UserAttributes {
   declare id: number;

@@ -3,8 +3,7 @@ import cors from 'cors'
 import express from 'express'
 import 'dotenv/config'
 import { router } from './src/routes/router.ts'
-import swaggerUi from 'swagger-ui-express'
-import { swaggerDocument } from './src/docs/swagger.ts'
+import { setupSwagger } from './src/config/swagger.config.ts'
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -12,7 +11,7 @@ const PORT = process.env.PORT || 3000
 app.use(cors())
 app.use(express.json())
 app.use('/api', router)
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
+setupSwagger(app)
 
 const databaseInit = async () => {
     try {

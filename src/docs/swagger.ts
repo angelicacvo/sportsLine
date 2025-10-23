@@ -1,0 +1,318 @@
+import type { OpenAPIV3 } from 'openapi-types'
+
+export const swaggerDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: {
+    title: 'SportsLine API',
+    version: '1.0.0',
+    description: 'API documentation for SportsLine backend (Auth, Products, Clients)'
+  },
+  servers: [
+    { url: '/', description: 'Current server' }
+  ],
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      }
+    },
+    schemas: {
+      User: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer', example: 1 },
+          name: { type: 'string', example: 'Jane Doe' },
+          email: { type: 'string', example: 'jane@example.com' },
+          role: { type: 'string', example: 'admin' },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' }
+        }
+      },
+      Product: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer', example: 10 },
+          code: { type: 'string', example: 'SKU-001' },
+          name: { type: 'string', example: 'Soccer Ball' },
+          price: { type: 'number', example: 49.99 },
+          stock: { type: 'integer', example: 150 },
+          userId: { type: 'integer', example: 1 },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' }
+        }
+      },
+      Client: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer', example: 7 },
+          name: { type: 'string', example: 'Acme Corp.' },
+          email: { type: 'string', example: 'buyer@acme.com' },
+          phone: { type: 'string', example: '+57 300 123 4567' },
+          userId: { type: 'integer', example: 1 },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' }
+        }
+      },
+      RegisterPayload: {
+        type: 'object',
+        required: ['name', 'email', 'password'],
+        properties: {
+          name: { type: 'string', example: 'Jane Doe' },
+          email: { type: 'string', example: 'jane@example.com' },
+          password: { type: 'string', example: 'secret123' },
+        }
+      },
+      LoginPayload: {
+        type: 'object',
+        required: ['email', 'password'],
+        properties: {
+          email: { type: 'string', example: 'jane@example.com' },
+          password: { type: 'string', example: 'secret123' },
+        }
+      },
+      ProductCreatePayload: {
+        type: 'object',
+        required: ['code', 'name', 'price', 'stock'],
+        properties: {
+          code: { type: 'string', example: 'SKU-001' },
+          name: { type: 'string', example: 'Soccer Ball' },
+          price: { type: 'number', example: 49.99 },
+          stock: { type: 'integer', example: 100 },
+        }
+      },
+      ProductUpdatePayload: {
+        type: 'object',
+        properties: {
+          code: { type: 'string', example: 'SKU-001' },
+          name: { type: 'string', example: 'Ball size 5' },
+          price: { type: 'number', example: 39.99 },
+          stock: { type: 'integer', example: 200 },
+        }
+      },
+      ClientCreatePayload: {
+        type: 'object',
+        required: ['name'],
+        properties: {
+          name: { type: 'string', example: 'Acme Corp.' },
+          email: { type: 'string', example: 'buyer@acme.com' },
+          phone: { type: 'string', example: '+57 300 123 4567' },
+        }
+      },
+      ClientUpdatePayload: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', example: 'Acme Ltd.' },
+          email: { type: 'string', example: 'purchases@acme.com' },
+          phone: { type: 'string', example: '+57 315 000 0000' },
+        }
+      }
+    }
+  },
+  security: [{ bearerAuth: [] }],
+  paths: {
+    '/api/auth/register': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Register a new user',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/RegisterPayload' }
+            }
+          }
+        },
+        responses: {
+          '201': {
+            description: 'User created',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    value: { message: 'User created successfully', user: { id: 1, name: 'Jane Doe', email: 'jane@example.com', role: 'admin' } }
+                  }
+                }
+              }
+            }
+          },
+          '400': { description: 'Validation or business error' },
+          '500': { description: 'Server error' }
+        }
+      }
+    },
+    '/api/auth/login': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Login',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/LoginPayload' }
+            }
+          }
+        },
+        responses: {
+          '200': {
+            description: 'Login ok',
+            content: {
+              'application/json': {
+                examples: {
+                  success: {
+                    value: { message: 'Login successful', token: 'JWT_TOKEN', refreshToken: 'REFRESH_TOKEN', user: { id: 1, email: 'jane@example.com', role: 'admin' } }
+                  }
+                }
+              }
+            }
+          },
+          '403': { description: 'Invalid credentials' }
+        }
+      }
+    },
+    '/api/auth/refresh': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Refresh tokens',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: { refreshToken: { type: 'string' } },
+                required: ['refreshToken']
+              }
+            }
+          }
+        },
+        responses: {
+          '200': { description: 'New tokens issued' },
+          '400': { description: 'Missing or invalid refreshToken' }
+        }
+      }
+    },
+
+    '/api/products': {
+      get: {
+        tags: ['Products'],
+        summary: 'List products',
+        responses: {
+          '200': {
+            description: 'Array of products',
+            content: { 'application/json': { schema: { type: 'object', properties: { products: { type: 'array', items: { $ref: '#/components/schemas/Product' } } } } } }
+          }
+        },
+        security: [{ bearerAuth: [] }]
+      },
+      post: {
+        tags: ['Products'],
+        summary: 'Create product (admin)',
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/ProductCreatePayload' } } }
+        },
+        responses: {
+          '201': { description: 'Product created' },
+          '400': { description: 'Validation or business rule error' }
+        },
+        security: [{ bearerAuth: [] }]
+      }
+    },
+    '/api/products/{id}': {
+      parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+      get: {
+        tags: ['Products'],
+        summary: 'Get product by id',
+        responses: {
+          '200': { description: 'Product detail', content: { 'application/json': { schema: { type: 'object', properties: { product: { $ref: '#/components/schemas/Product' } } } } } },
+          '404': { description: 'Not found' }
+        },
+        security: [{ bearerAuth: [] }]
+      },
+      put: {
+        tags: ['Products'],
+        summary: 'Update product (admin)',
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/ProductUpdatePayload' } } }
+        },
+        responses: {
+          '200': { description: 'Product updated' },
+          '400': { description: 'Validation or business rule error' },
+          '404': { description: 'Not found' }
+        },
+        security: [{ bearerAuth: [] }]
+      },
+      delete: {
+        tags: ['Products'],
+        summary: 'Delete product (admin)',
+        responses: {
+          '200': { description: 'Deleted' },
+          '404': { description: 'Not found' }
+        },
+        security: [{ bearerAuth: [] }]
+      }
+    },
+
+    '/api/clients': {
+      get: {
+        tags: ['Clients'],
+        summary: 'List clients',
+        responses: {
+          '200': { description: 'Array of clients', content: { 'application/json': { schema: { type: 'object', properties: { clients: { type: 'array', items: { $ref: '#/components/schemas/Client' } } } } } } }
+        },
+        security: [{ bearerAuth: [] }]
+      },
+      post: {
+        tags: ['Clients'],
+        summary: 'Create client (admin)',
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/ClientCreatePayload' } } }
+        },
+        responses: {
+          '201': { description: 'Client created' },
+          '400': { description: 'Validation or business rule error' }
+        },
+        security: [{ bearerAuth: [] }]
+      }
+    },
+    '/api/clients/{id}': {
+      parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+      get: {
+        tags: ['Clients'],
+        summary: 'Get client by id',
+        responses: {
+          '200': { description: 'Client detail', content: { 'application/json': { schema: { type: 'object', properties: { client: { $ref: '#/components/schemas/Client' } } } } } },
+          '404': { description: 'Not found' }
+        },
+        security: [{ bearerAuth: [] }]
+      },
+      put: {
+        tags: ['Clients'],
+        summary: 'Update client (admin)',
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/ClientUpdatePayload' } } }
+        },
+        responses: {
+          '200': { description: 'Client updated' },
+          '400': { description: 'Validation or business rule error' },
+          '404': { description: 'Not found' }
+        },
+        security: [{ bearerAuth: [] }]
+      },
+      delete: {
+        tags: ['Clients'],
+        summary: 'Delete client (admin)',
+        responses: {
+          '200': { description: 'Deleted' },
+          '404': { description: 'Not found' }
+        },
+        security: [{ bearerAuth: [] }]
+      }
+    }
+  }
+}

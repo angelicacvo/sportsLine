@@ -1,11 +1,12 @@
 import { Router } from 'express'
 import { authMiddleware, roleMiddleware } from '../middlewares/auth.middleware.ts'
 import { validateBody, validateParams } from '../middlewares/validation.middleware.ts'
-import { orderCreateSchema, orderIdParamSchema, orderClientNameParamSchema, orderProductNameParamSchema } from '../schemas/order.schema.ts'
-import { createOrderController, getOrderByIdController, getOrdersController, getOrdersByClientNameController, getOrdersByProductNameController } from '../controllers/order.controller.ts'
+import { orderCreateSchema, orderIdParamSchema, orderClientNameParamSchema, orderProductNameParamSchema, orderUpdateSchema } from '../schemas/order.schema.ts'
+import { createOrderController, getOrderByIdController, getOrdersController, getOrdersByClientNameController, getOrdersByProductNameController, updateOrderController, deleteOrderController } from '../controllers/order.controller.ts'
 
 export const router = Router()
 
+// routes for order resource
 // Create order (admin and seller)
 router.post('/', authMiddleware, roleMiddleware('admin', 'seller'), validateBody(orderCreateSchema), createOrderController)
 
@@ -20,3 +21,9 @@ router.get('/by-client-name/:name', authMiddleware, roleMiddleware('admin', 'sel
 
 // Get orders by product name (admin and seller)
 router.get('/by-product-name/:name', authMiddleware, roleMiddleware('admin', 'seller'), validateParams(orderProductNameParamSchema), getOrdersByProductNameController)
+
+// Update order status (admin only)
+router.put('/:id', authMiddleware, roleMiddleware('admin'), validateParams(orderIdParamSchema), validateBody(orderUpdateSchema), updateOrderController)
+
+// Delete order (admin only)
+router.delete('/:id', authMiddleware, roleMiddleware('admin'), validateParams(orderIdParamSchema), deleteOrderController)

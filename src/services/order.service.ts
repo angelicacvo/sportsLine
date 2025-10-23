@@ -5,6 +5,7 @@ import { Order, type OrderCreationDTO } from '../models/orders.model.ts'
 import { OrderProduct, type OrderProductCreationDTO } from '../models/orderProducts.model.ts'
 import { Product } from '../models/products.model.ts'
 import { Client } from '../models/clients.model.ts'
+import type { OrderStatus } from '../models/orders.model.ts'
 
 export interface CreateOrderItemInput {
   productId: number
@@ -17,6 +18,7 @@ export interface CreateOrderInput {
   items: CreateOrderItemInput[]
 }
 
+// compute a draft order without stock validation or inventory changes
 export const createOrderDraftService = async (payload: CreateOrderInput) => {
   // Borrador: calcula total y crea líneas SIN validar stock ni descontar inventario (Task 1)
   return await sequelize.transaction(async (transaction: Transaction) => {
@@ -25,6 +27,7 @@ export const createOrderDraftService = async (payload: CreateOrderInput) => {
     const priceById = new Map(productsFound.map((p) => [p.id, Number(p.price)]))
 
     const orderItems: OrderProductCreationDTO[] = payload.items.map((item) => ({
+// create a confirmed order, validate stock, and decrement inventory atomically
       orderId: 0, // se setea después de crear la orden
       productId: item.productId,
       quantity: item.quantity,
@@ -88,6 +91,7 @@ export const createOrderService = async (payload: CreateOrderInput) => {
   })
 }
 
+// list orders with optional filters (by client/product name) and include relations
 export const getOrdersService = async (filter?: { clientId?: number; productId?: number; clientName?: string; productName?: string }) => {
   const where: WhereOptions = {}
   if (filter?.clientId) Object.assign(where, { clientId: filter.clientId })
@@ -113,6 +117,7 @@ export const getOrdersService = async (filter?: { clientId?: number; productId?:
   return orders
 }
 
+// get a single order by id with its client and product lines
 export const getOrderByIdService = async (id: number) => {
   const order = await Order.findByPk(id, {
     include: [
@@ -121,4 +126,83 @@ export const getOrderByIdService = async (id: number) => {
     ],
   })
   return order ?? 'Order not found'
+}
+
+// update order status and adjust inventory according to transitions
+export const updateOrderStatusService = async (id: number, status: OrderStatus) => {
+  return await sequelize.transaction(async (transaction: Transaction) => {
+    const order = await Order.findByPk(id, {
+      include: [{ model: Product, as: 'products', through: { attributes: ['quantity', 'unitPrice'] } }],
+      transaction,
+    })
+    if (!order) return 'Order not found'
+
+    if (order.status === status) return order
+
+    // Build a map of productId -> quantity from pivot
+    const items = await OrderProduct.findAll({ where: { orderId: order.id }, transaction })
+
+    if (status === 'cancelled' && order.status === 'confirmed') {
+      // Restore stock
+      for (const it of items) {
+        await Product.increment('stock', { by: it.quantity, where: { id: it.productId }, transaction })
+      }
+      order.status = 'cancelled'
+      await order.save({ transaction })
+      return order
+    }
+
+    if ((status === 'confirmed' && order.status === 'cancelled') || (status === 'confirmed' && order.status === 'pending')) {
+      // Validate stock then decrement
+      const products = await Product.findAll({ where: { id: { [Op.in]: items.map(i => i.productId) } }, transaction })
+      const byId = new Map(products.map(p => [p.id, p]))
+      for (const it of items) {
+        const p = byId.get(it.productId)
+        if (!p) throw new Error(`Producto ${it.productId} no existe`)
+        if (p.stock < it.quantity) throw new Error(`Stock insuficiente para el producto ${p.code}`)
+      }
+      for (const it of items) {
+        await Product.decrement('stock', { by: it.quantity, where: { id: it.productId }, transaction })
+      }
+      order.status = 'confirmed'
+      await order.save({ transaction })
+      return order
+    }
+
+    if (status === 'pending' && order.status === 'confirmed') {
+      // Move back to pending: restore stock
+      for (const it of items) {
+        await Product.increment('stock', { by: it.quantity, where: { id: it.productId }, transaction })
+      }
+      order.status = 'pending'
+      await order.save({ transaction })
+      return order
+    }
+
+    // Other transitions (cancelled -> pending) do not affect stock
+    order.status = status
+    await order.save({ transaction })
+    return order
+  })
+}
+
+// delete an order and restore stock when needed
+export const deleteOrderService = async (id: number) => {
+  return await sequelize.transaction(async (transaction: Transaction) => {
+    const order = await Order.findByPk(id, { transaction })
+    if (!order) return 'Order not found'
+
+    // Restore stock if confirmed
+    if (order.status === 'confirmed') {
+      const items = await OrderProduct.findAll({ where: { orderId: order.id }, transaction })
+      for (const it of items) {
+        await Product.increment('stock', { by: it.quantity, where: { id: it.productId }, transaction })
+      }
+    }
+
+    // Delete pivot then order
+    await OrderProduct.destroy({ where: { orderId: order.id }, transaction })
+    await order.destroy({ transaction })
+    return true
+  })
 }

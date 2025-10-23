@@ -6,6 +6,7 @@ import { clientCreateSchema, clientUpdateSchema, clientIdParamSchema } from '../
 
 export const router = Router()
 
+// routes for client resource
 // Admin y seller pueden listar
 router.get('/', authMiddleware, roleMiddleware('admin', 'seller'), getClientsController)
 router.get('/:id', authMiddleware, roleMiddleware('admin', 'seller'), validateParams(clientIdParamSchema), getClientByIdController)

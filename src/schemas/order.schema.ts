@@ -11,6 +11,11 @@ export const orderCreateSchema = z.object({
 })
 
 
+export const orderUpdateSchema = z.object({
+  status: z.enum(['pending', 'confirmed', 'cancelled']),
+})
+
+
 export const orderIdParamSchema = z.object({
   id: z.string().regex(/^\d+$/).transform(Number),
 })

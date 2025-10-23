@@ -9,18 +9,22 @@ type JwtPayload = {
   role: 'admin' | 'seller'
 }
 
+// sign a short-lived access token
 export function signAccessToken(payload: JwtPayload) {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' })
 }
 
+// sign a long-lived refresh token
 export function signRefreshToken(payload: JwtPayload) {
   return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: '7d' })
 }
 
+// verify and decode an access token
 export function verifyAccessToken(token: string) {
   return jwt.verify(token, JWT_SECRET) as JwtPayload
 }
 
+// verify and decode a refresh token
 export function verifyRefreshToken(token: string) {
   return jwt.verify(token, JWT_REFRESH_SECRET) as JwtPayload
 }

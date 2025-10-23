@@ -7,7 +7,7 @@ export interface AuthRequest extends Request {
   user?: { id: number; email: string; role: UserRole }
 }
 
-// authMiddleware: verifica JWT de Authorization: Bearer <token>
+// verify jwt from the authorization header and attach user to request
 export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const auth = req.headers.authorization || ''
@@ -22,7 +22,7 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
   }
 }
 
-// roleMiddleware: valida que el rol del usuario esté permitido
+// ensure the authenticated user has one of the allowed roles
 export const roleMiddleware = (...allowed: UserRole[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) return res.status(401).json({ message: 'Unauthorized' })

@@ -1,8 +1,10 @@
+// authentication services for registration and login
+// returns safe user objects and tokens, or error strings on failure
 import { User, type AuthUserDTO, type RegisterUserDTO } from '../models/users.model.ts'
 import { hashPassword, comparePassword } from '../utils/bcrypt.handle.ts'
 import { signAccessToken } from '../utils/jwt.handle.ts'
 
-// registrationService: crea usuario y devuelve objeto seguro o string de error
+// registration service: creates user and returns safe object or error string
 export async function registrationService(data: RegisterUserDTO) {
   const { name, email, password } = data
   if (!name || !email || !password) return 'name, email and password are required'
@@ -15,7 +17,7 @@ export async function registrationService(data: RegisterUserDTO) {
   return { id: user.id, name: user.name, email: user.email, role: user.role }
 }
 
-// loginService: valida credenciales y retorna { token, user } o string de error
+// login service: validates credentials and returns { token, user } or error string
 export async function loginService(data: AuthUserDTO) {
   const { email, password } = data
   if (!email || !password) return 'email and password are required'

@@ -5,6 +5,7 @@ import { registerSchema, loginSchema } from '../schemas/auth.schema.ts'
 
 export const router = Router()
 
+// routes for authentication
 router.post('/register', validateBody(registerSchema), registrationController)
 router.post('/login', validateBody(loginSchema), loginController)
 router.post('/refresh', refreshController)

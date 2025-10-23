@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express'
 import type { ZodSchema } from 'zod'
 import { errorHandler } from '../utils/error.handle.ts'
 
+// validate request body against a zod schema
 export const validateBody = (schema: ZodSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -10,7 +11,6 @@ export const validateBody = (schema: ZodSchema) => {
         const details = parsed.error.flatten()
         return res.status(400).json({ message: 'Validation error', errors: details })
       }
-      // Solo validamos; no reasignamos req.body para mantenerlo simple y consistente con tus controladores
       return next()
     } catch (e) {
       return errorHandler(res, 'Validation middleware error', e)
@@ -18,6 +18,7 @@ export const validateBody = (schema: ZodSchema) => {
   }
 }
 
+// validate route params against a zod schema
 export const validateParams = (schema: ZodSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -26,7 +27,6 @@ export const validateParams = (schema: ZodSchema) => {
         const details = parsed.error.flatten()
         return res.status(400).json({ message: 'Validation error', errors: details })
       }
-      // Solo validamos; no mutamos req.params
       return next()
     } catch (e) {
       return errorHandler(res, 'Validation middleware error', e)
@@ -34,6 +34,7 @@ export const validateParams = (schema: ZodSchema) => {
   }
 }
 
+// validate query string against a zod schema
 export const validateQuery = (schema: ZodSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -42,7 +43,6 @@ export const validateQuery = (schema: ZodSchema) => {
         const details = parsed.error.flatten()
         return res.status(400).json({ message: 'Validation error', errors: details })
       }
-      // Solo validamos; no mutamos req.query
       return next()
     } catch (e) {
       return errorHandler(res, 'Validation middleware error', e)

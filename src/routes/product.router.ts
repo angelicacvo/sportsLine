@@ -6,6 +6,7 @@ import { productCreateSchema, productUpdateSchema, productIdParamSchema } from '
 
 export const router = Router()
 
+// routes for product resource
 // Listar (admin y seller)
 router.get('/', authMiddleware, roleMiddleware('admin', 'seller'), getProductsController)
 router.get('/:id', authMiddleware, roleMiddleware('admin', 'seller'), validateParams(productIdParamSchema), getProductByIdController)
